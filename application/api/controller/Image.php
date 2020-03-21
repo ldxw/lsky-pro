@@ -19,21 +19,24 @@ class Image extends Base
     public function initialize()
     {
         parent::initialize();
+        $user = request()->user;
         $this->model = new Images();
-        $this->model = $this->model->where('user_id', $this->user->id)->field(['user_id', 'folder_id'], true);
+        $this->model = $this->model->where('user_id', $user->id)->field(['user_id', 'folder_id'], true);
     }
 
     public function find()
     {
-        $id = $this->param('id');
-        $image = $this->model->where(['id' => $id])->find();
+        $id = $this->request->post('id');
+        if (!$image = $this->model->where('id', $id)->find()) {
+            $this->response('未找到该图片数据', [], 500);
+        }
         $this->response('success', $this->parseData($image));
     }
 
     public function items()
     {
-        $page = $this->param('page', 1);
-        $rows = $this->param('rows', 20);
+        $page = $this->request->request('page', 1);
+        $rows = $this->request->request('rows', 20);
         $images = $this->model->paginate(null, false, [
             'page' => $page,
             'list_rows' => $rows,
@@ -48,14 +51,14 @@ class Image extends Base
     public function delete()
     {
         $user = new User();
-        $data = str_replace('，', ',', $this->param('id'));
+        $data = str_replace('，', ',', $this->request->request('id'));
         if (strpos($data, ',') !== false) {
             $data = explode(',', $data);
         }
         if ($user->deleteImages($data)) {
-            return $this->response('删除成功!');
+            $this->response('删除成功!');
         }
-        return $this->response('删除失败!', [], 500);
+        $this->response('删除失败!', [], 500);
     }
 
     private function parseData($data)

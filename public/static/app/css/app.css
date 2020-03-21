@@ -86,7 +86,7 @@ main .upload-container .title {
 }
 main .upload-container .title h1 {
   font-weight: 300;
-  font-size: 1.8rem;
+  font-size: 2rem;
   text-shadow: -5px 5px 0 rgba(0, 0, 0, 0.1);
 }
 main .upload-container .title p {
@@ -134,14 +134,21 @@ main .console-container .mdui-table td,
 main .console-container .mdui-table th {
   padding: 12px 28px;
 }
+main .console-container div.item i.mdui-icon {
+  float: left;
+  font-size: 3.7rem;
+}
 main .console-container div.item > div {
   border-radius: 3px;
 }
 main .console-container div.item > div p {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 main .system-container .mdui-textfield-label {
   pointer-events: inherit;
+}
+main .system-container .mdui-textfield {
+  overflow: inherit;
 }
 main .images-container #info .mdui-dialog-content {
   word-break: break-all;
@@ -483,6 +490,9 @@ main .mask .content {
 #menu .quota-container progress::-moz-progress-value {
   background-color: #708d9b;
 }
+#fab-buttons.mdui-fab-wrapper {
+  margin-bottom: 4rem;
+}
 #search-form .search-input {
   display: inline-block;
   padding-bottom: 0.6rem;
@@ -497,6 +507,7 @@ footer {
   color: #999;
   text-align: left;
   background-color: #f5f5f5;
+  z-index: -1;
 }
 .pagination {
   display: inline-block;
@@ -562,6 +573,85 @@ footer {
   background-color: #fff;
   border-color: #ddd;
   cursor: not-allowed;
+}
+body.mdui-theme-layout-dark .markdown-body {
+  color: #eaeaea;
+}
+body.mdui-theme-layout-dark .markdown-body a {
+  color: #64adff;
+}
+body.mdui-theme-layout-dark .markdown-body img {
+  background-color: rgba(0, 0, 0, 0);
+}
+body.mdui-theme-layout-dark .markdown-body .highlight pre,
+body.mdui-theme-layout-dark .markdown-body pre {
+  background-color: #585858;
+}
+body.mdui-theme-layout-dark .markdown-body table tr {
+  background-color: #4c4c4c;
+}
+body.mdui-theme-layout-dark .markdown-body table tr:nth-child(2n) {
+  background-color: #5d5d5d;
+}
+body.mdui-theme-layout-dark .pagination > .disabled > span,
+body.mdui-theme-layout-dark .pagination > .disabled > span:hover,
+body.mdui-theme-layout-dark .pagination > .disabled > span:focus,
+body.mdui-theme-layout-dark .pagination > .disabled > a,
+body.mdui-theme-layout-dark .pagination > .disabled > a:hover,
+body.mdui-theme-layout-dark .pagination > .disabled > a:focus,
+body.mdui-theme-layout-dark .pagination > li > a,
+body.mdui-theme-layout-dark .pagination > li > span {
+  background-color: #2b2b2b;
+}
+body.mdui-theme-layout-dark .mdui-btn,
+body.mdui-theme-layout-dark .mdui-theme-accent-indigo .mdui-dialog-actions .mdui-btn {
+  color: white !important;
+}
+body.mdui-theme-layout-dark main .mask {
+  background-color: rgba(47, 45, 45, 0.47058824);
+}
+body.mdui-theme-layout-dark main .mask .content .mdui-color-white {
+  color: white !important;
+  background-color: rgba(76, 76, 76, 0.78) !important;
+}
+body.mdui-theme-layout-dark main .images-container .folders-box .item p.name,
+body.mdui-theme-layout-dark main .images-container .images-box .item p.name {
+  color: #a0a0a0;
+}
+body.mdui-theme-layout-dark main .images-container .folders-box .item:hover,
+body.mdui-theme-layout-dark main .images-container .images-box .item:hover {
+  background-color: #212121;
+}
+body.mdui-theme-layout-dark main ul.breadcrumb {
+  background-color: #3e3e3e;
+}
+body.mdui-theme-layout-dark main ul.breadcrumb li.active a {
+  color: #c3c3c3;
+}
+body.mdui-theme-layout-dark main .upload-container .success-info ul li {
+  border: 1px solid #888888;
+  background-color: #303030;
+  color: #d4d4d4;
+}
+body.mdui-theme-layout-dark footer {
+  background-color: #303030;
+}
+body.mdui-theme-layout-dark .modal-content {
+  background-color: #333;
+}
+body.mdui-theme-layout-dark .file-input .file-preview {
+  box-shadow: 0 0 15px 0 rgba(0, 0, 0, 0.2);
+}
+body.mdui-theme-layout-dark .file-input .file-caption-main .btn:first-child {
+  border-left: 0;
+}
+body.mdui-theme-layout-dark .file-input .file-caption-main .form-control {
+  color: #bababa;
+  background-color: #303030;
+  box-shadow: 0 0 15px 0 rgba(0, 0, 0, 0.2);
+}
+body.mdui-theme-layout-dark .file-input .file-caption-main .form-control .file-caption-name {
+  color: #c1c1c1;
 }
 @media (max-width: 768px) {
   body {

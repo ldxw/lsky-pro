@@ -20,21 +20,18 @@ class User extends Base
 {
     public function images($keyword = '', $folderId = 0, $limit = 60)
     {
+        $images = $folders = [];
         if ($this->request->isPost()) {
             try {
                 $model = $this->user->images()->order('create_time', 'desc');
                 $folders = $this->user->folders()->where('parent_id', $folderId)->select();
                 if (!empty($keyword)) {
-                    $model = $model->where('pathname|sha1|md5|ip', 'like', "%{$keyword}%");
+                    $model = $model->where('pathname|alias_name|sha1|md5|ip', 'like', "%{$keyword}%");
                 }
                 if (is_numeric($folderId)) {
                     $model = $model->where('folder_id', $folderId);
                 }
-                $images = $model->paginate($limit)->each(function ($item) {
-                    $item->url = $item->url;
-                    // TODO 生成缩略图
-                    return $item;
-                });
+                $images = $model->paginate($limit);
             } catch (Exception $e) {
                 $this->error($e->getMessage());
             }
@@ -52,23 +49,17 @@ class User extends Base
         try {
             $id = $deleteId ? $deleteId : $this->request->post('id');
             $deletes = []; // 需要删除的文件
-            if (is_array($id)) {
-                $images = Images::all($id);
-                foreach ($images as &$value) {
+            $images = $this->user->images()->where('id', 'in', $id)->select();
+            foreach ($images as &$value) {
+                // 查找是否有相同 md5 的文件记录，有的话则只删除记录不删除文件
+                if (!$this->exists($value)) {
                     $deletes[$value->strategy][] = $value->pathname;
-                    $value->delete();
-                    unset($value);
                 }
-            } else {
-                $image = Images::get($id);
-                if (!$image) {
-                    throw new Exception('没有找到该图片数据');
-                }
-                $deletes[$image->strategy][] = $image->pathname;
-                $image->delete();
+                $value->delete();
+                unset($value);
             }
             // 是否开启软删除(开启了只删除记录，不删除文件)
-            if (!$this->config['soft_delete']) {
+            if (!$this->getConfig('soft_delete')) {
                 $strategy = [];
                 // 实例化所有储存策略驱动
                 $strategyAll = array_keys(Config::pull('strategy'));
@@ -92,9 +83,15 @@ class User extends Base
             Db::commit();
         } catch (Exception $e) {
             Db::rollback();
-            return $deleteId ? false : $this->error($e->getMessage());
+            if ($deleteId) {
+                return false;
+            }
+            $this->error($e->getMessage());
         }
-        return $deleteId ? true : $this->success('删除成功');
+        if ($deleteId) {
+            return true;
+        }
+        $this->success('删除成功');
     }
 
     public function createFolder()
@@ -148,10 +145,11 @@ class User extends Base
         }
     }
 
-    public function moveImages($ids = [], $folderId)
+    public function moveImages($ids, $folderId)
     {
         if ($this->request->isPost()) {
-            if ($this->user->folders()->where('id', $folderId)->count()) {
+            $count = $this->user->folders()->where('id', $folderId)->count();
+            if ($count || $folderId == 0) {
                 if (Images::where('id', 'in', $ids)->setField('folder_id', $folderId)) {
                     $this->success('移动成功');
                 }
@@ -201,7 +199,7 @@ class User extends Base
                 if (!$validate->check(['name' => $name])) {
                     throw new \Exception($validate->getError());
                 }
-                if (!Images::where('id', $id)->update(['alias_name' => $name])) {
+                if (!$this->user->images()->where('id', $id)->update(['alias_name' => $name])) {
                     throw new \Exception('重命名失败');
                 }
             } catch (\Exception $e) {
@@ -211,10 +209,21 @@ class User extends Base
         }
     }
 
+    /**
+     * 检测除本身图片以外的记录是否存在
+     *
+     * @param Images $image
+     * @return float|string
+     */
+    private function exists(Images $image)
+    {
+        return Images::where('id', 'neq', $image->id)->where('md5', $image->md5)->count();
+    }
+
     private function getDeleteFoldersAndImages($folderId, &$folders, &$images)
     {
-        $folderList = Folders::where('parent_id', $folderId)->column('id');
-        $imagesList = Images::where('folder_id', $folderId)->column('id');
+        $folderList = $this->user->folders()->where('parent_id', $folderId)->column('id');
+        $imagesList = $this->user->images()->where('folder_id', $folderId)->column('id');
         if ($imagesList) {
             $images = array_merge($images, $imagesList);
         }

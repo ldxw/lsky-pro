@@ -12,14 +12,15 @@
   {block name="css"}{/block}
   <link rel="shortcut icon" href="/favicon.ico">
   <link rel="stylesheet" href="/static/app/iconfont/iconfont.css">
-  <link rel="stylesheet" href="/static/mdui/0.4.3/css/mdui.min.css">
-  <link rel="stylesheet" href="/static/app/css/app.css?v=1.3">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@0.4.3/dist/css/mdui.min.css">
+  <link rel="stylesheet" href="/static/app/css/app.css?v=1.4">
+  <link rel="stylesheet" href="/static/app/css/markdown.css?v=1.0">
   <!--[if IE]>
   <script>window.location.href = '/compatibility.html';</script>
   <![endif]-->
-  {$config.custom_style|raw}
 </head>
-<body class="mdui-theme-accent-indigo mdui-appbar-with-toolbar {if cookie('?menu') and cookie('menu') eq 'open'}mdui-drawer-body-left{/if}">
+<body class="mdui-theme-accent-indigo mdui-appbar-with-toolbar {if cookie('?menu') and cookie('menu') eq 'open'}mdui-drawer-body-left{/if} {if cookie('theme') eq 'dark'} mdui-theme-layout-dark{/if}">
+{$config.custom_style|raw}
 {block name="header"}
 <div class="mdui-appbar mdui-appbar-fixed">
   <div class="mdui-toolbar mdui-color-black">
@@ -44,13 +45,10 @@
       </li>
     </ul>
     {/if}
-    <!-- More -->
-    <!--<span mdui-menu="{target: '#more'}" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">&#xe5d4;</i></span>
-    <ul class="mdui-menu" id="more">
-      <li class="mdui-menu-item">
-        <a href="https://www.wispx.cn" target="_blank" class="mdui-ripple">熊二哈的猫窝</a>
-      </li>
-    </ul>-->
+    <!-- Theme -->
+    <a id="set-theme" href="javascript:app.toggleTheme()" class="mdui-btn mdui-btn-icon">
+      <i class="mdui-icon material-icons">{if cookie('theme') eq 'dark'}&#xe3ac;{else/}&#xe3a9;{/if}</i>
+    </a>
   </div>
 </div>
 {/block}
@@ -139,13 +137,14 @@
   </div>
 </footer>
 {/block}
-<script src="/static/jquery/3.3.1/jquery.min.js"></script>
-<script src="/static/mdui/0.4.3/js/mdui.min.js"></script>
-<script src="/static/marked/0.5.1/marked.js"></script>
-<script src="/static/app/js/app.js?v=1.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mdui@0.4.3/dist/js/mdui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@0.8.0/marked.min.js"></script>
+<script src="/static/app/js/app.js?v=1.2"></script>
 {block name="js"}{/block}
 <script>
-  var thatVer = '{$config.system_version}';
+  var ver = '{$config.system_version}';
   $(function () {
     var toTop = $("#to-top"), toTopHide = function () {
       if ($(window).scrollTop() > 50) {
@@ -172,13 +171,18 @@
     });
 
     $('#update').click(function () {
-      app.update(thatVer, true);
+      app.getLastVer(ver, true);
+    });
+
+    $('body').on('click', '.markdown-body a', function (e) {
+      e.preventDefault();
+      window.open(this.href, '_blank');
     });
   });
 </script>
 {if $user and $user.is_admin and !cookie('?no_update')}
 <script>
-  app.update(thatVer, false);
+  app.getLastVer(ver, false);
 </script>
 {/if}
 {$config.statistics_code|raw}

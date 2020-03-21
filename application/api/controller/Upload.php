@@ -10,27 +10,17 @@ namespace app\api\controller;
 
 use think\Db;
 use think\Exception;
+use think\exception\ErrorException;
 
 class Upload extends Base
 {
     public function initialize()
     {
-        $config = [];
-        $configs = \app\common\model\Config::all();
-        foreach ($configs as $key => &$value) {
-            $config[$value->name] = $value->value;
-        }
-
-        if (!$config['open_api']) {
-            $this->response('API is not open yet.', [], 500);
-        }
+        parent::initialize();
 
         // 是否允许游客上传
-        $token = $this->request->header('token', $this->param('token'));
-        if (!$this->config['allowed_tourist_upload']) {
-            $token && $this->auth($token);
-        } else {
-            $this->auth($token);
+        if (!$this->getConfig('allowed_tourist_upload') && !request()->user) {
+            $this->response('管理员关闭了游客上传通道');
         }
     }
 
@@ -39,16 +29,23 @@ class Upload extends Base
      */
     public function index()
     {
+        $data = null;
         Db::startTrans();
         try {
 
-            $data = (new \app\index\controller\Upload)->execute($this->user);
+            $data = (new \app\common\controller\Upload)->exec();
 
             Db::commit();
         } catch (Exception $e) {
             Db::rollback();
-            return $this->response($e->getMessage(), [], 500);
+            $this->response($e->getMessage(), [], 500);
+        } catch (ErrorException $e) {
+            Db::rollback();
+            $this->response($e->getMessage(), [], 500);
+        } catch (\Throwable $e) {
+            Db::rollback();
+            $this->response($e->getMessage(), [], 500);
         }
-        return $this->response('success', $data);
+        $this->response('success', $data);
     }
 }

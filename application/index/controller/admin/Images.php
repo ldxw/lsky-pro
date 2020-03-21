@@ -46,7 +46,7 @@ class Images extends Base
             $model = $model->where($field, $value);
         }
         if (!empty($keyword)) {
-            $model = $model->where('pathname|sha1|md5|ip', 'like', "%{$keyword}%");
+            $model = $model->where('pathname|alias_name|sha1|md5|ip', 'like', "%{$keyword}%");
         }
         $images = $model->order('id', 'desc')->paginate($limit, false, [
             'query' => [
@@ -77,23 +77,17 @@ class Images extends Base
             try {
                 $id = $this->request->post('id');
                 $deletes = []; // 需要删除的文件
-                if (is_array($id)) {
-                    $images = ImagesModel::all($id);
-                    foreach ($images as &$value) {
+                $images = ImagesModel::where('id', 'in', $id)->select();
+                foreach ($images as &$value) {
+                    // 查找是否有相同 md5 的文件记录，有的话则只删除记录不删除文件
+                    if (!$this->exists($value)) {
                         $deletes[$value->strategy][] = $value->pathname;
-                        $value->delete();
-                        unset($value);
                     }
-                } else {
-                    $image = ImagesModel::get($id);
-                    if (!$image) {
-                        throw new Exception('没有找到该图片数据');
-                    }
-                    $deletes[$image->strategy][] = $image->pathname;
-                    $image->delete();
+                    $value->delete();
+                    unset($value);
                 }
                 // 是否开启软删除(开启了只删除记录，不删除文件)
-                if (!$this->config['soft_delete']) {
+                if (!$this->getConfig('soft_delete')) {
                     $strategy = [];
                     // 实例化所有储存策略驱动
                     $strategyAll = array_keys($this->strategyList);
@@ -121,6 +115,17 @@ class Images extends Base
             }
             $this->success('删除成功');
         }
+    }
+
+    /**
+     * 检测除本身图片以外的记录是否存在
+     *
+     * @param ImagesModel $image
+     * @return float|string
+     */
+    private function exists(ImagesModel $image)
+    {
+        return ImagesModel::where('id', 'neq', $image->id)->where('md5', $image->md5)->count();
     }
 
     public function getIpInfo()

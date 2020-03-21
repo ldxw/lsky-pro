@@ -3,7 +3,7 @@
 {block name="title"}图片管理 - {$config.site_name}{/block}
 
 {block name="css"}
-  <link rel="stylesheet" href="/static/jquery-viewer/1.2.0/css/viewer.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/viewerjs@1.5.0/dist/viewer.min.css">
 {/block}
 
 {block name="main"}
@@ -69,63 +69,65 @@
     <div class="page">
       {$images|raw}
     </div>
-    <select class="operation mdui-select" mdui-select>
-      <option value="">选中项</option>
-      <option value="delete">删除</option>
-    </select>
   </main>
+</div>
+<div class="mdui-fab-wrapper" id="fab-buttons">
+  <button class="mdui-fab mdui-ripple mdui-color-red mdui-fab-hide" id="multi-delete" onclick="remove()">
+    <i class="mdui-icon material-icons">&#xe872;</i>
+  </button>
 </div>
 {/block}
 
 {block name="js"}
-<script src="/static/jquery-viewer/1.2.0/js/viewer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/viewerjs@1.5.0/dist/viewer.min.js"></script>
 <script src="/static/jquery-viewer/1.2.0/js/jquery-viewer.js"></script>
 <script>
+  var methods = {
+    delete: function (id, batch, callback) {
+      var msg = '确认删除该图片吗？';
+      if (batch) {
+        msg = '确认删除选中项图片吗？';
+      }
+      mdui.confirm(msg, function () {
+        app.request("{:url('admin/images/delete')}", {id: id}, function () {
+          callback && callback();
+        });
+      }, function () {
+
+      }, {confirmText: '确定', cancelText: '取消'});
+    }
+  };
+
+  function remove() {
+    var selected = $('tr.mdui-table-row-selected');
+    var array = [];
+    if (selected.length) {
+      selected.each(function (index, value) {
+        array.push($(value).data('id'));
+      });
+
+      methods.delete(array, true, function () {
+        selected.remove();
+      });
+    } else {
+      mdui.snackbar({
+        message: '至少选择一项数据！'
+      });
+    }
+  }
   $(function () {
     var viewer = $('tbody').viewer({
       url: 'data-original',
       zIndex: 999999999
     });
 
-    var methods = {
-      delete: function (id, batch, callback) {
-        var msg = '确认删除该图片吗？';
-        if (batch) {
-          msg = '确认删除选中项图片吗？';
-        }
-        mdui.confirm(msg, function () {
-          app.request("{:url('admin/images/delete')}", {id: id}, function () {
-            callback && callback();
-          });
-        }, function () {
-
-        }, {confirmText: '确定', cancelText: '取消'});
-      }
-    };
     $('.mdui-select.where').on('close.mdui.select', function () {
       $('#search-form').submit();
     });
-    $('.mdui-select.operation').on('close.mdui.select', function () {
-      if ($(this).val() !== '') {
-        var selected = $('tr.mdui-table-row-selected');
-        var val = $(this).val();
-        var array = [];
-        if (selected.length) {
-          selected.each(function (index, value) {
-            array.push($(value).data('id'));
-          });
-
-          if ('delete' === val) {
-            methods.delete(array, true, function () {
-              selected.remove();
-            });
-          }
-        } else {
-          mdui.snackbar({
-            message: '至少选择一项数据！'
-          });
-        }
-      }
+    // 多选操作
+    $('.mdui-checkbox input').change(function () {
+      var selected = $('tr.mdui-table-row-selected');
+      $('#multi-delete')[selected.length > 0 ? 'removeClass' : 'addClass']('mdui-fab-hide');
     });
     // 查看图片
     $('td button.see').click(function () {
